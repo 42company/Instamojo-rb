@@ -74,56 +74,6 @@ module Instamojo
       @response
     end
 
-    # GET /links
-    def links_list
-      get('links')
-      @response.success? ? @response.body[:links].map { |link| Instamojo::Link.new link, self } : @response
-    end
-
-    # GET /links/:slug
-    def link_detail(slug)
-      slug = slug.slug if slug.instance_of? Instamojo::Link
-      get("links/#{slug}")
-      @response.success? ? Instamojo::Link.new(@response.body[:link], self) : @response
-    end
-
-    # POST /links
-    def create_link(options = {}, &block)
-      options = set_options(options, &block)
-      options[:file_upload_json] = options[:file_upload] && upload_file(options.delete(:file_upload))
-      options[:cover_image_json] = options[:cover_image] && upload_file(options.delete(:cover_image))
-      post('links', options)
-      @response.success? ? Instamojo::Link.new(@response.body[:link], self) : @response
-    end
-
-    # PATCH /links/:slug
-    def edit_link(link = nil, options = {}, &block)
-      if link && link.is_a?(Instamojo::Link)
-        yield(link) if block_given?
-      else
-        options = set_options(options, &block)
-        link = Instamojo::Link.new(options, self)
-      end
-      patch("links/#{link.slug}", link.to_h)
-      @response.success? ? Instamojo::Link.new(@response.body[:link], self) : @response
-    end
-
-    # DELETE /links/:slug
-    def archive_link(slug)
-      delete("links/#{slug}")
-    end
-
-    # POST 'https://filepicker.io/api/store/S3'
-    def upload_file(filepath)
-      if filepath && (file=File.open(File.expand_path(filepath), 'rb'))
-        if (url=get_file_upload_url).is_a? String
-          resource = RestClient::Resource.new(url)
-          resource.post fileUpload: file
-        end
-      end
-    end
-
-
     # GET /payments
     def payments_list
       get('payments')
